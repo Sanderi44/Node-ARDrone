@@ -1,0 +1,77 @@
+
+This code simply allows me to drive the Parrot AR Drone
+var keypress = require('keypress');
+var stdin = process.stdin;
+var arDrone = require('ar-drone');
+var client  = arDrone.createClient();
+var inair = false;
+client.config('general:navdata_demo', 'TRUE');
+client.disableEmergency();
+keypress(stdin);
+stdin.on('keypress', function (ch, key){
+    console.log('Got keypress:',key.name);
+    if (key && key.ctrl && key.name == "c" || key.name == "q"){
+        process.exit();
+    }
+    else if (key && key.name == "space" && inair == false){
+        stdin.pause();
+        console.log('Takeoff');
+        client.takeoff();
+        inair = true;
+        stdin.resume();
+    }
+    else if (key && key.name == "space" && inair == true){
+        stdin.pause();
+        console.log('Landing...');
+        client.stop();
+        client.land();
+        inair = false;
+        stdin.resume();
+    }
+    else if (inair == true){
+        if (key && key.name == "up"){
+            stdin.pause();
+            client.front(0.25);
+            client.after(10,function(){
+                client.stop();
+                stdin.resume();
+            });
+        }
+        else if (key && key.name == "down"){
+            stdin.pause();
+            client.back(0.25);
+            client.after(10,function(){
+                client.stop();
+                stdin.resume();
+            });
+        }
+        else if (key && key.name == "left"){
+            stdin.pause();
+            client.counterClockwise(0.35);
+            client.after(10,function(){
+                client.stop();
+                stdin.resume();
+            });
+        }
+        else if(key && key.name == "right"){
+            stdin.pause();
+            client.clockwise(0.35);
+            client.after(10,function(){
+                client.stop();
+                stdin.resume();
+            });
+        }
+        else if(key && key.name == "s"){
+            stdin.pause();
+            client.stop();
+            client.after(50, function(){
+                stdin.resume();
+            });
+        }
+    }
+});
+process.on('exit', function(){
+    console.log('Exiting...');
+})
+stdin.setRawMode(true);
+stdin.resume();
